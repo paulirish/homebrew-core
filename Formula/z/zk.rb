@@ -6,6 +6,11 @@ class Zk < Formula
   license "GPL-3.0-only"
   head "https://github.com/zk-org/zk.git", branch: "main"
 
+  livecheck do
+    url :stable
+    strategy :github_latest
+  end
+
   bottle do
     rebuild 1
     sha256 cellar: :any,                 arm64_sequoia: "10efe9c92516aeb1acd357235201f53a4c7e51ebb61a55f0a099ce8c2d5ed0e4"
