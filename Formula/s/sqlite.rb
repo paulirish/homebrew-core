@@ -1,9 +1,9 @@
 class Sqlite < Formula
   desc "Command-line interface for SQLite"
   homepage "https://sqlite.org/index.html"
-  url "https://www.sqlite.org/2025/sqlite-autoconf-3480000.tar.gz"
-  version "3.48.0"
-  sha256 "ac992f7fca3989de7ed1fe99c16363f848794c8c32a158dafd4eb927a2e02fd5"
+  url "https://www.sqlite.org/2025/sqlite-autoconf-3490000.tar.gz"
+  version "3.49.0"
+  sha256 "4d8bfa0b55e36951f6e5a9fb8c99f3b58990ab785c57b4f84f37d163a0672759"
   license "blessing"
 
   livecheck do
@@ -48,16 +48,15 @@ class Sqlite < Formula
       -DSQLITE_USE_URI=1
     ].join(" ")
 
-    args = %W[
-      --prefix=#{prefix}
-      --disable-dependency-tracking
-      --enable-dynamic-extensions
-      --enable-readline
-      --disable-editline
-      --enable-session
+    args = [
+      "--enable-readline",
+      "--disable-editline",
+      "--enable-session",
+      "--with-readline-cflags=-I#{Formula["readline"].opt_include}",
+      "--with-readline-ldflags=-L#{Formula["readline"].opt_lib} -lreadline",
     ]
 
-    system "./configure", *args
+    system "./configure", *args, *std_configure_args
     system "make", "install"
 
     # Avoid rebuilds of dependants that hardcode this path.
