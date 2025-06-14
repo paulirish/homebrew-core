@@ -1,14 +1,16 @@
 class GitRecent < Formula
-  desc "See your latest local git branches, formatted real fancy"
+  desc "Browse your latest git branches, formatted real fancy"
   homepage "https://github.com/paulirish/git-recent"
-  url "https://github.com/paulirish/git-recent/archive/refs/tags/v1.1.1.tar.gz"
-  sha256 "790c0de09ea19948b3b0ad642d82c30ee20c8d14a04b761fa2a2f716dc19eedc"
+  url "https://github.com/paulirish/git-recent/archive/refs/tags/v2.0.2.tar.gz"
+  sha256 "44c117f04f2ed2ac2c9146b0f11b3140cd7f1d82845eca43ed6f7155e929b052"
   license "MIT"
 
   bottle do
     rebuild 1
     sha256 cellar: :any_skip_relocation, all: "3a4143920243a863447daa6f2b17b3cda4e0a163e8502c6c36a910eee4ee7450"
   end
+
+  depends_on "fzf"
 
   depends_on macos: :sierra
 
@@ -20,15 +22,32 @@ class GitRecent < Formula
 
   def install
     bin.install "git-recent"
+    bin.install "git-recent-og"
   end
 
   test do
     system "git", "init", "--initial-branch=main"
-    system "git", "recent"
     # User will be 'BrewTestBot' on CI, needs to be set here to work locally
     system "git", "config", "user.name", "BrewTestBot"
     system "git", "config", "user.email", "brew@test.bot"
-    system "git", "commit", "--allow-empty", "-m", "test_commit"
-    assert_match(/.*main.*seconds? ago.*BrewTestBot.*\n.*test_commit/, shell_output("git recent"))
+    system "git", "commit", "--allow-empty", "-m", "initial commit"
+
+    # Create a branch that we will later select.
+    system "git", "checkout", "-b", "feature-x-branch"
+    system "git", "commit", "--allow-empty", "-m", "commit on feature branch"
+
+    # Create another branch to ensure fzf has multiple choices.
+    system "git", "checkout", "-b", "another-branch"
+    system "git", "commit", "--allow-empty", "-m", "commit on another branch"
+    system "git", "checkout", "main"
+
+    # This should select "feature-x-branch" and the script will check it out.
+    output = with_env "GIT_RECENT_QUERY" => "x" do
+      shell_output("#{bin}/git-recent")
+    end
+
+    # The important result is that the current branch has been changed.
+    # We verify this by asking git for the current branch name.
+    assert_equal "feature-x-branch", shell_output("git rev-parse --abbrev-ref HEAD").strip
   end
 end
